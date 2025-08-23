@@ -10,79 +10,141 @@
     <title>Portfolio Florian Sylvain</title>
 
     <style>
+        :root {
+            --background: #0e120e;
+            --foreground: #e2f1e2;
+            --border: #161f16;
+            --accent: #7fc27f;
+            --accent-hover: #a7e6a7;
+            --accent-visited: #5e8a5e;
+            --muted: #7fa07f;
+        }
+
         body {
-            background-color: #111;
-            color: #fff;
+            background: var(--background);
+            color: var(--foreground);
+            font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
             max-width: 1000px;
             margin: auto;
             padding: 16px;
         }
 
-        #header {
-            display: flex;
-            flex-direction: column;
+        #header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: .5px;
+            color: var(--accent-hover);
+        }
+
+        #header img {
+            max-width: 140px;
+            height: auto;
+            border: 2px solid var(--border);
         }
 
         #header div {
             display: flex;
             align-items: center;
-            gap: 32px;
-        }
-
-        #header img {
-            max-width: 150px;
-            height: auto;
+            gap: 16px;
         }
 
         table {
-            border: 3px outset #aaa;
+            border: none;
+            background: var(--border);
             width: 100%;
+            margin-bottom: 16px;
+            overflow: hidden;
         }
 
-        table th,
-        table td {
-            border: 1px inset #bbb;
+        th,
+        td {
+            border: none;
+            padding: 8px 10px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background: var(--border);
+            color: var(--accent);
+            font-weight: 600;
+            letter-spacing: .2px;
+        }
+
+        td {
+            background: var(--border);
+        }
+
+        caption {
+            color: var(--muted);
+            font-size: .95em;
+            margin-bottom: 4px;
         }
 
         a {
-            color: #00aaff;
+            color: var(--accent);
+            text-decoration: none;
+            transition: color .2s, border-bottom .2s;
+            border-bottom: 1px dotted var(--accent);
+        }
+
+        a:hover {
+            color: var(--accent-hover);
+            border-bottom: 1px solid var(--accent-hover);
+            text-decoration: none;
         }
 
         a:visited {
-            color: #598cac;
+            color: var(--accent-visited);
         }
 
-        #experiences table,
-        #projets table {
-            margin-bottom: 16px;
-            table-layout: fixed;
-        }
-
-        #experiences col:first-child,
-        #projets col:first-child {
-            width: 100px;
-        }
-
-        #experiences col:last-child,
-        #projets col:last-child {
-            width: 100%;
-        }
-
-        ul {
+        ul,
+        ol {
             margin: 0;
+            padding-left: 20px;
         }
 
         nav li {
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
 
-        @media screen and (max-width: 576px) {
+        section h2,
+        footer h2 {
+            color: var(--accent);
+            font-size: 1.4rem;
+            margin-top: 24px;
+            margin-bottom: 8px;
+            font-weight: 600;
+            letter-spacing: .2px;
+        }
+
+        footer {
+            border-top: 1px solid #1e2a1e;
+            margin-top: 32px;
+            padding-top: 12px;
+            font-size: .95em;
+            color: var(--muted);
+            background: var(--background);
+        }
+
+        #experiences thead th,
+        #projets thead th {
+            font-size: large;
+        }
+
+        @media (max-width: 576px) {
             body {
-                padding: 0;
+                padding: 8px;
             }
 
-            #header img {
-                max-width: 100px;
+            #header div {
+                flex-direction: column;
+            }
+
+            table,
+            th,
+            td {
+                font-size: .95em;
             }
         }
     </style>
@@ -90,19 +152,19 @@
 
 <body>
     <header id="header">
+        <h1>Portfolio de Florian Sylvain</h1>
         <div>
-            <h1>Portfolio de Florian Sylvain</h1>
             <img width="150" height="140" src="profile.webp" alt="Photo de Florian Sylvain" />
+            <p>
+                Diplômé d'un Bachelor Développeur Web à l'ESD Paris,
+                autoentrepreneur, je suis passionné par l'informatique.
+                Actuellement en poste à temps plein en CDI chez DOLLEN
+                (Bonnueil-sur-Marne) en tant que développeur web fullstack, je
+                suis à l'écoute pour toute nouvelle opportunité. Disponible sous
+                moins d'un mois, je suis véhiculé, ouvert à une prise de poste
+                dans toute la France et à l'international.
+            </p>
         </div>
-        <p>
-            Diplômé d'un Bachelor Développeur Web à l'ESD Paris,
-            autoentrepreneur, je suis passionné par l'informatique.
-            Actuellement en poste à temps plein en CDI chez DOLLEN
-            (Bonnueil-sur-Marne) en tant que développeur web fullstack, je
-            suis à l'écoute pour toute nouvelle opportunité. Disponible sous
-            moins d'un mois, je suis véhiculé, ouvert à une prise de poste
-            dans toute la France et à l'international.
-        </p>
     </header>
 
     <nav>
