@@ -15,16 +15,22 @@
             color: #fff;
             max-width: 1000px;
             margin: auto;
+            padding: 16px;
         }
 
         #header {
-            display: grid;
-            grid-template-columns: 1fr 150px;
-            gap: 16px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #header div {
+            display: flex;
+            align-items: center;
+            gap: 32px;
         }
 
         #header img {
-            max-width: 100%;
+            max-width: 150px;
             height: auto;
         }
 
@@ -65,26 +71,38 @@
         ul {
             margin: 0;
         }
+
+        nav li {
+            margin-bottom: 8px;
+        }
+
+        @media screen and (max-width: 576px) {
+            body {
+                padding: 0;
+            }
+
+            #header img {
+                max-width: 100px;
+            }
+        }
     </style>
 </head>
 
 <body>
     <header id="header">
-        <article>
+        <div>
             <h1>Portfolio de Florian Sylvain</h1>
-            <p>
-                Diplômé d'un Bachelor Développeur Web à l'ESD Paris,
-                autoentrepreneur, je suis passionné par l'informatique.
-                Actuellement en poste à temps plein en CDI chez DOLLEN
-                (Bonnueil-sur-Marne) en tant que développeur web fullstack, je
-                suis à l'écoute pour toute nouvelle opportunité. Disponible sous
-                moins d'un mois, je suis véhiculé, ouvert à une prise de poste
-                dans toute la France et à l'international.
-            </p>
-        </article>
-        <aside>
-            <img src="profile.webp" alt="Photo de Florian Sylvain" />
-        </aside>
+            <img width="150" height="140" src="profile.webp" alt="Photo de Florian Sylvain" />
+        </div>
+        <p>
+            Diplômé d'un Bachelor Développeur Web à l'ESD Paris,
+            autoentrepreneur, je suis passionné par l'informatique.
+            Actuellement en poste à temps plein en CDI chez DOLLEN
+            (Bonnueil-sur-Marne) en tant que développeur web fullstack, je
+            suis à l'écoute pour toute nouvelle opportunité. Disponible sous
+            moins d'un mois, je suis véhiculé, ouvert à une prise de poste
+            dans toute la France et à l'international.
+        </p>
     </header>
 
     <nav>
@@ -122,7 +140,6 @@
                         <th scope="col">Établissement</th>
                         <th scope="col">Niveau</th>
                         <th scope="col">Diplôme</th>
-                        <th scope="col">Mention</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -131,21 +148,18 @@
                         <td><a href="https://ecole-du-digital.com/">ESD Paris</a></td>
                         <td>Bac +3 / RNCP 6</td>
                         <td>Bachelor Développeur Web</td>
-                        <td></td>
                     </tr>
                     <tr>
                         <td>2020 - 2022</td>
                         <td><a href="https://www.univ-gustave-eiffel.fr/">Université Gustave Eiffel</a></td>
                         <td>Bac +2</td>
                         <td>DUT Informatique</td>
-                        <td></td>
                     </tr>
                     <tr>
                         <td>2017 - 2020</td>
                         <td>Lycée Polyvalent René Cassin</td>
                         <td>Bac</td>
-                        <td>Baccalauréat STI2D</td>
-                        <td>Bien</td>
+                        <td>Baccalauréat STI2D <i>(mention bien)</i></td>
                     </tr>
                 </tbody>
             </table>
