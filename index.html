@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/x-icon" href="/profile.webp">
+    <link rel="icon" type="image/x-icon" href="/favicon.webp">
     <title>Portfolio Florian Sylvain</title>
 
     <style>
@@ -44,16 +44,19 @@
             color: #598cac;
         }
 
-        #experiences table {
+        #experiences table,
+        #projets table {
             margin-bottom: 16px;
             table-layout: fixed;
         }
 
-        #experiences col:first-child {
+        #experiences col:first-child,
+        #projets col:first-child {
             width: 100px;
         }
 
-        #experiences col:last-child {
+        #experiences col:last-child,
+        #projets col:last-child {
             width: 100%;
         }
 
@@ -309,17 +312,18 @@
         <section id="projets">
             <h2>Projets récents</h2>
             <table>
-                <caption>Tableau des projets récents</caption>
+                <colgroup>
+                    <col>
+                    <col>
+                </colgroup>
                 <thead>
                     <tr>
-                        <th scope="col">Nom</th>
-                        <th scope="col">Description</th>
-                        <th scope="col">Technologies</th>
+                        <th scope="col" colspan="2">GoCMS</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td><a href="https://github.com/Floriansylvain/GoCMS">GoCMS</a></td>
+                        <th scope="row"><strong>Description</strong></th>
                         <td>GoCMS est un projet de système de gestion de contenu développé en Go. Le but à terme de ce
                             projet en cours de developpement est de me faciliter la création de site web qui nécessitent
                             des fonctionnalités comme celles d'un Wordpress, notamment un système de blog et d'articles,
@@ -328,34 +332,72 @@
                             moteur de templating html de Go. J'utilise également Bootstrap pour avoir de belles
                             interface sans devoir fournir trop d'effort de développement front. J'héberge une démo du
                             projet en CI/CD via Jenkins sur mon serveur dédié Debian, contenerisé via Docker et exposé
-                            via Nginx.
-                        </td>
-                        <td>
-                            Go, HTML, CSS, JS, Bootstrap, Docker, Nginx, DDD, Jenkins, Debian, SQLite, Git
-                        </td>
+                            via Nginx.</td>
                     </tr>
                     <tr>
-                        <td><a href="https://github.com/Floriansylvain/SnippetsManager">SnippetsManager</a></td>
-                        <td>
-                            Projet réalisé dans le cadre d'un cours de Framework Backend à l'ESD, inspiré de l'outil
+                        <th scope="row"><strong>Technologies</strong></th>
+                        <td>Go, HTML, CSS, JS, Bootstrap, Docker, Nginx, DDD, Jenkins, Debian, SQLite, Git</td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><strong>Dépôt</strong></th>
+                        <td><a href="https://github.com/Floriansylvain/GoCMS">GoCMS</a></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <table>
+                <colgroup>
+                    <col>
+                    <col>
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th scope="col" colspan="2">SnippetsManager</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th scope="row"><strong>Description</strong></th>
+                        <td>Projet réalisé dans le cadre d'un cours de Framework Backend à l'ESD, inspiré de l'outil
                             open-source massCode dont le principe est de gérer des snippets (bouts de code). Il s'agit
-                            d'une API conçu en Typescript, Express, Prisma, MySql, Docker et Jest.
-                        </td>
-                        <td>
-                            Typescript, Express, Prisma, MySql, Docker, Jest, NodeJS, Git, TSX
-                        </td>
+                            d'une API conçu en Typescript, Express, Prisma, MySql, Docker et Jest.</td>
                     </tr>
                     <tr>
+                        <th scope="row"><strong>Technologies</strong></th>
+                        <td>Typescript, Express, Prisma, MySql, Docker, Jest, NodeJS, Git, TSX</td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><strong>Dépôt</strong></th>
+                        <td><a href="https://github.com/Floriansylvain/SnippetsManager">SnippetsManager</a></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <table>
+                <colgroup>
+                    <col>
+                    <col>
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th scope="col" colspan="2">spotify-playlist-embed</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th scope="row"><strong>Description</strong></th>
+                        <td>Petit projet réalisé dans le cadre d'un cours de Framework Frontend à l'ESD, il s'agit d'un
+                            lecteur de playlist spotify réalisé en NextJS et Typescript, avec la spotify-web-apinode
+                            ainsi que Tailwindcss.</td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><strong>Technologies</strong></th>
+                        <td>NextJS, Typescript, Tailwindcss, Spotify API, TSX, Git, Vercel</td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><strong>Dépôt</strong></th>
                         <td><a
                                 href="https://github.com/Floriansylvain/spotify-playlist-embed">spotify-playlist-embed</a>
-                        </td>
-                        <td>
-                            Petit projet réalisé dans le cadre d'un cours de Framework
-                            Frontend à l'ESD, il s'agit d'un lecteur de playlist spotify
-                            réalisé en NextJS et Typescript, avec la spotify-web-apinode ainsi que Tailwindcss.
-                        </td>
-                        <td>
-                            NextJS, Typescript, Tailwindcss, Spotify API, TSX, Git, Vercel
                         </td>
                     </tr>
                 </tbody>
