@@ -91,7 +91,7 @@ function minifyCSS(src) {
         .replace(/\s*([{}:;,>+~\(\)\[\]'"*\/])\s*/g, "$1")
         .replace(/;}/g, "}")
         .replace(/\b0+(px|em|rem|vh|vw|%|s|ms)\b/g, "0")
-        .replace(/\b0+\.(\d+)/g, ".$1") // 0.5 -> .5
+        .replace(/\b0+\.(\d+)/g, ".$1")
         .replace(/#([0-9a-fA-F])\1([0-9a-fA-F])\2([0-9a-fA-F])\3\b/g, "#$1$2$3")
         .replace(
             /rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/g,
@@ -426,39 +426,57 @@ function generateSRIHash(content) {
 async function loadAndMinify(relPath, minify) {
     const abs = path.join(ROOT, relPath);
     const src = await fs.promises.readFile(abs);
-    const originalContent = src.toString("utf8");
 
-    let processedContent = originalContent;
+    const ext = path.extname(relPath).toLowerCase();
+    const isBinaryFile = [
+        ".webp",
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".gif",
+        ".ico",
+    ].includes(ext);
 
-    if (relPath === "index.html") {
-        const cssPath = path.join(ROOT, "style.css");
-        if (fs.existsSync(cssPath)) {
-            const cssContent = await fs.promises.readFile(cssPath, "utf8");
-            const minifiedCSS = minifyCSS(cssContent);
+    let body;
+    let processedContent;
 
-            processedContent = processedContent.replace(
-                /<link[^>]*href=["']style\.css["'][^>]*>/gi,
-                `<style>${minifiedCSS}</style>`
-            );
+    if (isBinaryFile) {
+        body = src;
+        processedContent = null;
+    } else {
+        const originalContent = src.toString("utf8");
+        processedContent = originalContent;
+
+        if (relPath === "index.html") {
+            const cssPath = path.join(ROOT, "style.css");
+            if (fs.existsSync(cssPath)) {
+                const cssContent = await fs.promises.readFile(cssPath, "utf8");
+                const minifiedCSS = minifyCSS(cssContent);
+
+                processedContent = processedContent.replace(
+                    /<link[^>]*href=["']style\.css["'][^>]*>/gi,
+                    `<style>${minifiedCSS}</style>`
+                );
+            }
+
+            const jsPath = path.join(ROOT, "script.js");
+            if (fs.existsSync(jsPath)) {
+                const jsContent = await fs.promises.readFile(jsPath, "utf8");
+                const minifiedJS = minifyJS(jsContent);
+
+                processedContent = processedContent.replace(
+                    /<script[^>]*src=["']script\.js["'][^>]*><\/script>/gi,
+                    `<script>${minifiedJS}</script>`
+                );
+            }
+
+            extractInlineContent(processedContent);
         }
 
-        const jsPath = path.join(ROOT, "script.js");
-        if (fs.existsSync(jsPath)) {
-            const jsContent = await fs.promises.readFile(jsPath, "utf8");
-            const minifiedJS = minifyJS(jsContent);
-
-            processedContent = processedContent.replace(
-                /<script[^>]*src=["']script\.js["'][^>]*><\/script>/gi,
-                `<script>${minifiedJS}</script>`
-            );
-        }
-
-        extractInlineContent(processedContent);
+        body = minify
+            ? Buffer.from(minify(processedContent), "utf8")
+            : Buffer.from(processedContent, "utf8");
     }
-
-    const body = minify
-        ? Buffer.from(minify(processedContent), "utf8")
-        : Buffer.from(processedContent, "utf8");
 
     let sriHash = null;
     if (relPath === "style.css" || relPath === "script.js") {
@@ -470,16 +488,16 @@ async function loadAndMinify(relPath, minify) {
     const stats = await fs.promises.stat(abs);
 
     const originalSize = src.length;
-    const minifiedSize = body.length;
+    const processedSize = body.length;
     const brSize = compressed.br?.length || 0;
     const gzSize = compressed.gz?.length || 0;
 
     console.log(`${relPath}:`);
     console.log(`  Original: ${originalSize} bytes`);
-    if (minify)
+    if (!isBinaryFile && minify)
         console.log(
-            `  Minified: ${minifiedSize} bytes (${(
-                ((originalSize - minifiedSize) / originalSize) *
+            `  Minified: ${processedSize} bytes (${(
+                ((originalSize - processedSize) / originalSize) *
                 100
             ).toFixed(1)}% reduction)`
         );
