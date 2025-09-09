@@ -67,7 +67,7 @@ function generateCSP() {
         "default-src 'self'",
         `script-src ${scriptSrc}`,
         `style-src ${styleSrc}`,
-        "img-src 'self' https:",
+        "img-src 'self' https: data:",
         "font-src 'self'",
         "connect-src 'self'",
         "media-src 'self'",
@@ -78,11 +78,9 @@ function generateCSP() {
         "form-action 'self'",
         "base-uri 'self'",
         "manifest-src 'self'",
+        "upgrade-insecure-requests",
     ].join("; ");
 
-    const hashCount = scriptSources.length + styleSources.length;
-    console.log(`Generated CSP with ${hashCount} inline content hashes:`);
-    console.log(`${csp}\n`);
     return csp;
 }
 
@@ -421,26 +419,6 @@ function preCompress(buf) {
     });
 }
 
-function injectSRIHashes(html) {
-    const cssEntry = files.get("/style.css");
-    if (cssEntry && cssEntry.sri) {
-        html = html.replace(
-            /<link([^>]*href=["']style\.css["'][^>]*)>/gi,
-            `<link$1 integrity="sha384-${cssEntry.sri}" crossorigin="anonymous">`
-        );
-    }
-
-    const jsEntry = files.get("/script.js");
-    if (jsEntry && jsEntry.sri) {
-        html = html.replace(
-            /<script([^>]*src=["']script\.js["'][^>]*)>/gi,
-            `<script$1 integrity="sha384-${jsEntry.sri}" crossorigin="anonymous">`
-        );
-    }
-
-    return html;
-}
-
 function generateSRIHash(content) {
     return crypto.createHash("sha384").update(content, "utf8").digest("base64");
 }
@@ -450,11 +428,37 @@ async function loadAndMinify(relPath, minify) {
     const src = await fs.promises.readFile(abs);
     const originalContent = src.toString("utf8");
 
+    let processedContent = originalContent;
+
     if (relPath === "index.html") {
-        extractInlineContent(originalContent);
+        const cssPath = path.join(ROOT, "style.css");
+        if (fs.existsSync(cssPath)) {
+            const cssContent = await fs.promises.readFile(cssPath, "utf8");
+            const minifiedCSS = minifyCSS(cssContent);
+
+            processedContent = processedContent.replace(
+                /<link[^>]*href=["']style\.css["'][^>]*>/gi,
+                `<style>${minifiedCSS}</style>`
+            );
+        }
+
+        const jsPath = path.join(ROOT, "script.js");
+        if (fs.existsSync(jsPath)) {
+            const jsContent = await fs.promises.readFile(jsPath, "utf8");
+            const minifiedJS = minifyJS(jsContent);
+
+            processedContent = processedContent.replace(
+                /<script[^>]*src=["']script\.js["'][^>]*><\/script>/gi,
+                `<script>${minifiedJS}</script>`
+            );
+        }
+
+        extractInlineContent(processedContent);
     }
 
-    const body = minify ? Buffer.from(minify(originalContent), "utf8") : src;
+    const body = minify
+        ? Buffer.from(minify(processedContent), "utf8")
+        : Buffer.from(processedContent, "utf8");
 
     let sriHash = null;
     if (relPath === "style.css" || relPath === "script.js") {
@@ -530,6 +534,11 @@ async function build() {
     }
     const cspPolicy = generateCSP();
     files.set("__csp__", cspPolicy);
+
+    console.log("CSS and JavaScript have been inlined into HTML automatically");
+    console.log(
+        "CSP policy generated with secure hashes for all inline content"
+    );
 }
 
 function setSecurityHeaders(res) {
