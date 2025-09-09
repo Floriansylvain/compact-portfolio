@@ -54,9 +54,6 @@ function generateCSP() {
     if (scriptSources.length > 0) {
         scriptSrc += ` ${scriptSources.join(" ")}`;
     }
-    if (scriptSources.length === 0) {
-        scriptSrc += " 'unsafe-inline'";
-    }
 
     let styleSrc = "'self'";
     if (styleSources.length > 0) {
@@ -70,7 +67,7 @@ function generateCSP() {
         "default-src 'self'",
         `script-src ${scriptSrc}`,
         `style-src ${styleSrc}`,
-        "img-src 'self' data: https:",
+        "img-src 'self' https:",
         "font-src 'self'",
         "connect-src 'self'",
         "media-src 'self'",
