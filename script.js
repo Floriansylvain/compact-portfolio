@@ -75,3 +75,12 @@ if (menuBtn && nav) {
         if (e.key === "Escape") closeMenu();
     });
 }
+
+document.addEventListener("DOMContentLoaded", function () {
+    const links = document.querySelectorAll("link[data-onload]");
+    links.forEach((link) => {
+        const onloadCode = link.getAttribute("data-onload");
+        link.onload = new Function(onloadCode);
+        link.removeAttribute("data-onload");
+    });
+});

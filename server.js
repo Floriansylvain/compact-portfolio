@@ -179,6 +179,15 @@ function minifyHTML(src) {
         .replace(/<style[^>]*>([\s\S]*?)<\/style>/gi, (m, css) => {
             return m.replace(css, minifyCSS(css));
         })
+        .replace(
+            /<link([^>]*)\s+onload=["']([^"']+)["']([^>]*)>/gi,
+            (match, before, onloadCode, after) => {
+                return `<link${before} data-onload="${onloadCode.replace(
+                    /"/g,
+                    "&quot;"
+                )}"${after}>`;
+            }
+        )
         .replace(/\s+([\w-]+)=["']([^"'\s<>]+)["']/g, (m, attr, val) => {
             if (/^[a-zA-Z0-9._:/-]+$/.test(val)) return ` ${attr}=${val}`;
             return m;
@@ -412,6 +421,30 @@ function preCompress(buf) {
     });
 }
 
+function injectSRIHashes(html) {
+    const cssEntry = files.get("/style.css");
+    if (cssEntry && cssEntry.sri) {
+        html = html.replace(
+            /<link([^>]*href=["']style\.css["'][^>]*)>/gi,
+            `<link$1 integrity="sha384-${cssEntry.sri}" crossorigin="anonymous">`
+        );
+    }
+
+    const jsEntry = files.get("/script.js");
+    if (jsEntry && jsEntry.sri) {
+        html = html.replace(
+            /<script([^>]*src=["']script\.js["'][^>]*)>/gi,
+            `<script$1 integrity="sha384-${jsEntry.sri}" crossorigin="anonymous">`
+        );
+    }
+
+    return html;
+}
+
+function generateSRIHash(content) {
+    return crypto.createHash("sha384").update(content, "utf8").digest("base64");
+}
+
 async function loadAndMinify(relPath, minify) {
     const abs = path.join(ROOT, relPath);
     const src = await fs.promises.readFile(abs);
@@ -422,6 +455,13 @@ async function loadAndMinify(relPath, minify) {
     }
 
     const body = minify ? Buffer.from(minify(originalContent), "utf8") : src;
+
+    let sriHash = null;
+    if (relPath === "style.css" || relPath === "script.js") {
+        sriHash = generateSRIHash(body.toString("utf8"));
+        console.log(`SRI hash for ${relPath}: sha384-${sriHash}`);
+    }
+
     const compressed = await preCompress(body);
     const stats = await fs.promises.stat(abs);
 
@@ -465,6 +505,7 @@ async function loadAndMinify(relPath, minify) {
         brEtag: compressed.br ? etag(compressed.br) : undefined,
         gz: compressed.gz,
         gzEtag: compressed.gz ? etag(compressed.gz) : undefined,
+        sri: sriHash,
     };
 
     files.set("/" + relPath.replace(/\\/g, "/"), entry);
