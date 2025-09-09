@@ -2,534 +2,243 @@
 <html lang="fr">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Portfolio de Florian Sylvain, développeur web fullstack actuellement en poste." />
-    <link rel="icon" type="image/x-icon" href="/favicon.webp" />
-    <link rel="canonical" href="https://floriansylvain.fr/" />
-    <title>Portfolio Florian Sylvain - Développeur web fullstack</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description"
+    content="Portfolio de Florian Sylvain, développeur web fullstack. Démonstration de design sobre, moderne et réactif." />
+  <link rel="icon" type="image/x-icon" href="/favicon.webp" />
+  <link rel="canonical" href="https://floriansylvain.fr/" />
+  <meta name="theme-color" content="#0e120e" />
+  <title>Portfolio Florian Sylvain - Développeur web fullstack</title>
 
-    <style>
-        :root {
-            --background: #0e120e;
-            --foreground: #e2f1e2;
-            --surface: #121a12;
-            --surface-2: #162116;
-            --border: #161f16;
-            --accent: #7fc27f;
-            --accent-hover: #a7e6a7;
-            --accent-visited: #5e8a5e;
-            --muted: #8aa78a;
-        }
-
-        body {
-            background: var(--background);
-            color: var(--foreground);
-            font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
-            line-height: 1.6;
-            max-width: 1000px;
-            margin: auto;
-            padding: 16px;
-            text-rendering: optimizeLegibility;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-        }
-
-        #header h1 {
-            font-size: clamp(1.6rem, 3.5vw, 2.25rem);
-            font-weight: 700;
-            letter-spacing: .2px;
-            color: var(--accent-hover);
-            margin-bottom: 8px;
-        }
-
-        #header img {
-            max-width: 128px;
-            height: auto;
-            display: block;
-            border: 1px solid var(--border);
-        }
-
-        #header div {
-            display: flex;
-            align-items: flex-start;
-            gap: 16px;
-        }
-
-        table {
-            width: 100%;
-            margin-bottom: 16px;
-            table-layout: fixed;
-            border-collapse: separate;
-            border-spacing: 0;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            overflow: hidden;
-        }
-
-        #experiences col:first-child,
-        #projets col:first-child {
-            width: 120px;
-        }
-
-        #experiences col:last-child,
-        #projets col:last-child {
-            width: 100%;
-        }
-
-        th,
-        td {
-            padding: 10px 12px;
-            text-align: left;
-            vertical-align: top;
-        }
-
-        thead th {
-            background: var(--surface-2);
-            color: var(--accent);
-            font-weight: 600;
-            letter-spacing: .2px;
-        }
-
-        tbody td {
-            background: var(--surface);
-        }
-
-        tbody tr:nth-child(odd) td {
-            background: color-mix(in srgb, var(--surface) 92%, white 8%);
-        }
-
-        caption {
-            color: var(--muted);
-            font-size: .95em;
-            text-transform: uppercase;
-            letter-spacing: .06em;
-            padding: 8px 0 6px;
-        }
-
-        a {
-            color: var(--accent);
-            text-decoration: underline;
-            text-decoration-color: var(--accent);
-            text-decoration-thickness: 0.08em;
-            text-underline-offset: 2px;
-        }
-
-        a:hover {
-            color: var(--accent-hover);
-            text-decoration-color: var(--accent-hover);
-        }
-
-        a:visited {
-            color: var(--accent-visited);
-        }
-
-        a:focus-visible {
-            outline: 2px solid var(--accent);
-            outline-offset: 2px;
-        }
-
-        ul,
-        ol {
-            margin: 0;
-            padding-left: 20px;
-        }
-
-        nav li {
-            margin-bottom: 6px;
-        }
-
-        section h2,
-        footer h2 {
-            color: var(--accent);
-            font-size: clamp(1.2rem, 2.2vw, 1.4rem);
-            margin-top: 24px;
-            margin-bottom: 8px;
-            font-weight: 600;
-            letter-spacing: .2px;
-        }
-
-        footer {
-            border-top: 1px solid #1e2a1e;
-            margin-top: 32px;
-            padding-top: 12px;
-            font-size: .95em;
-            color: var(--muted);
-            background: var(--background);
-        }
-
-        #experiences thead th,
-        #projets thead th {
-            font-size: large;
-        }
-
-        @media (max-width: 576px) {
-            body {
-                padding: 8px;
-            }
-
-            #header div {
-                flex-direction: column;
-            }
-
-            table,
-            th,
-            td {
-                font-size: .95em;
-            }
-        }
-    </style>
+  <link rel="stylesheet" href="style.css" media="print" onload="this.media='all'; this.onload=null;" />
+  <noscript>
+    <link rel="stylesheet" href="style.css" />
+  </noscript>
 </head>
 
-<body>
-    <header id="header">
-        <h1>Portfolio de Florian Sylvain</h1>
-        <div>
-            <img width="128" height="120" src="profile.webp" alt="Photo de Florian Sylvain" />
-            <p>
-                Diplômé d'un Bachelor Développeur Web à l'ESD Paris,
-                autoentrepreneur, je suis passionné par l'informatique.
-                Actuellement en poste à temps plein en CDI chez DOLLEN
-                (Bonnueil-sur-Marne) en tant que développeur web fullstack.
-            </p>
-        </div>
-    </header>
+<body id="top">
+  <header class="site-header">
+    <div class="container inner">
+      <a class="brand" href="#top" aria-label="Accueil">
+        <span class="logo">FS</span>
+        <span>Florian Sylvain</span>
+      </a>
+      <nav class="site-nav" id="primaryNav" aria-label="Navigation principale">
+        <a href="#about">À propos</a>
+        <a href="#skills">Compétences</a>
+        <a href="#experience">Expérience</a>
+        <a href="#projects">Projets</a>
+        <a href="#contact">Contact</a>
+      </nav>
+      <button class="menu-toggle" id="menuToggle" aria-controls="primaryNav" aria-expanded="false" type="button">
+        <span class="bars"><span></span></span>
+        Menu
+      </button>
+    </div>
+  </header>
 
-    <nav>
-        <h2>Navigation</h2>
-        <ol>
-            <li><a href="#competences">Compétences et qualifications</a></li>
-            <li><a href="#diplomes">Diplômes obtenus</a></li>
-            <li><a href="#experiences">Expériences professionnelles</a></li>
-            <li><a href="#projets">Projets récents</a></li>
-            <li><a href="#contact">Contact et coordonnées</a></li>
-            <li><a href="#autres">Autres informations</a></li>
-        </ol>
-    </nav>
+  <main class="container">
+    <aside class="banner reveal" role="note" aria-label="Annonce d'emploi urgente">
+      <span class="badge-urgent">Urgent</span>
+      <span>À la recherche d'opportunités <strong>CDI, CDD, Freelance </strong>en développement
+        <strong>Back</strong>, <strong>Front</strong>, <strong>DevOps</strong>, etc.</span>
+      <a class="btn primary" href="#contact">↓</a>
+    </aside>
 
-    <main>
-        <section id="competences">
-            <h2>Compétences et qualifications</h2>
-            <ul>
-                <li>Rédaction de spécifications et cahier de recettes.</li>
-                <li>Maîtrise de PhP, Java, Go, Html5/Css3, Javascript, Typescript, SQL, VueJS, React, Flutter, Docker,
-                    Jenkins, Git, GCP, et de Nginx. Apprendre un nouveau language ou framework n'est absolument pas un
-                    obstacle pour moi.</li>
-                <li>Maîtrise de l'anglais niveau C1</li>
-                <li>Maîtrise de la méthodologie agile, avec sprints, daily...</li>
-            </ul>
-        </section>
-
-        <section id="diplomes">
-            <h2>Diplômes obtenus</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th scope="col">Période</th>
-                        <th scope="col">Établissement</th>
-                        <th scope="col">Niveau</th>
-                        <th scope="col">Diplôme</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>2022 - 2024</td>
-                        <td><a href="https://ecole-du-digital.com">ESD Paris</a></td>
-                        <td>Bac +3 / RNCP 6</td>
-                        <td>Bachelor Développeur Web</td>
-                    </tr>
-                    <tr>
-                        <td>2020 - 2022</td>
-                        <td><a href="https://univ-gustave-eiffel.fr">Université Gustave Eiffel</a></td>
-                        <td>Bac +2</td>
-                        <td>DUT Informatique</td>
-                    </tr>
-                    <tr>
-                        <td>2017 - 2020</td>
-                        <td>Lycée Polyvalent René Cassin</td>
-                        <td>Bac</td>
-                        <td>Baccalauréat STI2D <i>(mention bien)</i></td>
-                    </tr>
-                </tbody>
-            </table>
-        </section>
-
-        <section id="experiences">
-            <h2>Expériences professionnelles</h2>
-
-            <table>
-                <colgroup>
-                    <col>
-                    <col>
-                </colgroup>
-                <thead>
-                    <tr>
-                        <th scope="col" colspan="2">CDI Développeur Web Fullstack</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <th scope="row"><strong>Entreprise</strong></th>
-                        <td><a href="https://dollen.fr">Dollen</a></td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><strong>Période</strong></th>
-                        <td>Nov. 2024 - En cours</td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><strong>Missions</strong></th>
-                        <td>
-                            <ul>
-                                <li>Conception logiciel (diagramme de classes <strong>UML</strong>)</li>
-                                <li>
-                                    Développement d'un back office
-                                    <ul>
-                                        <li>PHP 8.4, Symfony 7.3, Doctrine, Twig, Stimulus, PHPUnit, Domain Driven
-                                            Design</li>
-                                    </ul>
-                                </li>
-                                <li>
-                                    Déploiement et intégration continue du back-office en production et pré-production
-                                    <ul>
-                                        <li>Docker, Debian, Nginx, GitHub Action
-                                    </ul>
-                                </li>
-                                <li>
-                                    Migration de base de données
-                                    <ul>
-                                        <li>SQLite, PostgreSQL, MariaDB</li>
-                                    </ul>
-                                </li>
-                                <li>Peer reviewing</li>
-                                <li>
-                                    Gestion de projet Agile
-                                    <ul>
-                                        <li>Trello, GitHub Projects, daily sprints</li>
-                                    </ul>
-                                </li>
-                            </ul>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <table>
-                <colgroup>
-                    <col>
-                    <col>
-                </colgroup>
-                <thead>
-                    <tr>
-                        <th scope="col" colspan="2">Apprenti Développeur Fullstack</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <th scope="row"><strong>Entreprise</strong></th>
-                        <td><a href="https://lecadeaupresent.com">Présent</a></td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><strong>Période</strong></th>
-                        <td>Avr. 2023 - Sep. 2024 (1 an et 5 mois)</td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><strong>Missions</strong></th>
-                        <td>
-                            <ul>
-                                <li>
-                                    Développement d'une
-                                    <ul>
-                                        <li>application mobile interne
-                                            <ul>
-                                                <li>Kotlin</li>
-                                            </ul>
-                                        </li>
-                                        <li>application mobile B2C
-                                            <ul>
-                                                <li>Flutter</li>
-                                            </ul>
-                                        </li>
-                                        <li>API REST monolithique
-                                            <ul>
-                                                <li>Typescript ,Fastify ,Prisma, Jest, MySql, Docker, GCP, Domain Driven
-                                                    Design</li>
-                                            </ul>
-                                        </li>
-                                        <li>SPA pour Desktop et Mobile
-                                            <ul>
-                                                <li>React, Typescript, Zustand, Chakra UI</li>
-                                            </ul>
-                                        </li>
-                                    </ul>
-                                </li>
-                            </ul>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <table>
-                <colgroup>
-                    <col>
-                    <col>
-                </colgroup>
-                <thead>
-                    <tr>
-                        <th scope="col" colspan="2">Apprenti Développeur R&amp;D</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <th scope="row"><strong>Entreprise</strong></th>
-                        <td><a href="https://wattearth.com">WATT Earth</a></td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><strong>Période</strong></th>
-                        <td>Oct. 2021 - Sept. 2022 (1 an)</td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><strong>Missions</strong></th>
-                        <td>
-                            <ul>
-                                <li>
-                                    Conception et développement de fonctionnalités innovantes au cœur des produits WATT
-                                    Earth :
-                                    <ul>
-                                        <li>VueJS, Typescript, PHP, Python, MySql, Warp10, Grafana</li>
-                                    </ul>
-                                </li>
-                                <li>Maquettage et conception d'interfaces utilisateurs (<strong>Figma</strong>)</li>
-                                <li>Réalisation de spécifications et de cahiers de recettes</li>
-                                <li>
-                                    Intégration de technologies dans la solution de l'entreprise, correspondant aux
-                                    besoins client :
-                                    <ul>
-                                        <li>Modbus, LoRaWAN, Zigbee, ...</li>
-                                    </ul>
-                                </li>
-                            </ul>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </section>
-
-        <section id="projets">
-            <h2>Projets récents</h2>
-            <table>
-                <colgroup>
-                    <col>
-                    <col>
-                </colgroup>
-                <thead>
-                    <tr>
-                        <th scope="col" colspan="2">GoCMS</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <th scope="row"><strong>Description</strong></th>
-                        <td>GoCMS est un projet de système de gestion de contenu développé en Go. Le but à terme de ce
-                            projet en cours de developpement est de me faciliter la création de site web qui nécessitent
-                            des fonctionnalités comme celles d'un Wordpress, notamment un système de blog et d'articles,
-                            mais sans avoir recours à Wordpress ou équivalent. L'architecture du projet est en DDD,
-                            Domain Driven Design, et le front de l'interface d'administration est généré en SSR via le
-                            moteur de templating html de Go. J'utilise également Bootstrap pour avoir de belles
-                            interface sans devoir fournir trop d'effort de développement front. J'héberge une démo du
-                            projet en CI/CD via Jenkins sur mon serveur dédié Debian, contenerisé via Docker et exposé
-                            via Nginx.</td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><strong>Stack</strong></th>
-                        <td>Go, HTML, CSS, JS, Bootstrap, Docker, Nginx, DDD, Jenkins, Debian, SQLite, Git</td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><strong>Dépôt</strong></th>
-                        <td><a href="https://github.com/Floriansylvain/GoCMS">GoCMS</a></td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <table>
-                <colgroup>
-                    <col>
-                    <col>
-                </colgroup>
-                <thead>
-                    <tr>
-                        <th scope="col" colspan="2">SnippetsManager</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <th scope="row"><strong>Description</strong></th>
-                        <td>Projet réalisé dans le cadre d'un cours de Framework Backend à l'ESD, inspiré de l'outil
-                            open-source massCode dont le principe est de gérer des snippets (bouts de code). Il s'agit
-                            d'une API conçu en Typescript, Express, Prisma, MySql, Docker et Jest.</td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><strong>Stack</strong></th>
-                        <td>Typescript, Express, Prisma, MySql, Docker, Jest, NodeJS, Git, TSX</td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><strong>Dépôt</strong></th>
-                        <td><a href="https://github.com/Floriansylvain/SnippetsManager">SnippetsManager</a></td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <table>
-                <colgroup>
-                    <col>
-                    <col>
-                </colgroup>
-                <thead>
-                    <tr>
-                        <th scope="col" colspan="2">spotify-playlist-embed</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <th scope="row"><strong>Description</strong></th>
-                        <td>Petit projet réalisé dans le cadre d'un cours de Framework Frontend à l'ESD, il s'agit d'un
-                            lecteur de playlist spotify réalisé en NextJS et Typescript, avec la spotify-web-apinode
-                            ainsi que Tailwindcss.</td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><strong>Stack</strong></th>
-                        <td>NextJS, Typescript, Tailwindcss, Spotify API, TSX, Git, Vercel</td>
-                    </tr>
-                    <tr>
-                        <th scope="row"><strong>Dépôt</strong></th>
-                        <td><a
-                                href="https://github.com/Floriansylvain/spotify-playlist-embed">spotify-playlist-embed</a>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </section>
-
-        <section id="contact">
-            <h2>Contact</h2>
-            <p>Vous pouvez me contacter via les réseaux sociaux suivants :</p>
-            <ul>
-                <li><a href="https://linkedin.com/in/florian-sylvain-0651021a9">LinkedIn</a></li>
-            </ul>
-            <p>Autre moyens de contact indisponible sur ce portfolio pour éviter les crawlers malveillants et autre
-                récolte de données, qui résulteront en spam et démarchage incéssants.</p>
-        </section>
-    </main>
-
-    <footer id="autres">
-        <h2>Pourquoi un site aussi simple ?</h2>
-        <p>Ce site pèse moins de 14ko.
-            <a href="https://endtimes.dev/why-your-website-should-be-under-14kb-in-size">Why your website should be
-                under 14kB in size
-            </a>
+    <section id="about" class="hero reveal" aria-labelledby="hero-title">
+      <div class="hero-card">
+        <p class="eyebrow">Développeur web fullstack</p>
+        <h1 id="hero-title">Je conçois, développe et déploie des applications web performantes et maintenables.</h1>
+        <p>
+          Diplômé d'un Bachelor Développeur Web à l'ESD Paris, autoentrepreneur et passionné d'informatique.
+          Actuellement en CDI chez Dollen en tant que développeur web fullstack.
         </p>
-        <a href="#header">Remonter &#8593;</a>
-        <p>Dernière mise à jour : 2025/08/23</p>
-    </footer>
+        <div class="cta">
+          <a class="btn primary" href="#projects">Voir mes projets</a>
+          <a class="btn" href="#contact">Me contacter</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="skills" class="card reveal">
+      <h2>Compétences et qualifications</h2>
+      <p class="lead">J'aime les outils simples et le code clair.</p>
+      <div class="skill-groups">
+        <div class="group">
+          <h3>Backend</h3>
+          <div class="tags">
+            <span class="tag">PHP</span><span class="tag">Symfony</span><span class="tag">Doctrine</span>
+            <span class="tag">Node</span><span class="tag">Fastify</span><span class="tag">Prisma</span>
+            <span class="tag">Jest</span><span class="tag">Go</span>
+            <span class="tag">Java</span><span class="tag">C#</span><span class="tag">C++</span>
+          </div>
+        </div>
+        <div class="group">
+          <h3>Frontend</h3>
+          <div class="tags">
+            <span class="tag">Vue</span>
+            <span class="tag">Nuxt</span>
+            <span class="tag">React</span>
+            <span class="tag">Next</span>
+            <span class="tag">TypeScript</span>
+            <span class="tag">HTML</span>
+            <span class="tag">CSS</span>
+            <span class="tag">Tailwind</span>
+          </div>
+        </div>
+        <div class="group">
+          <h3>Mobile</h3>
+          <div class="tags">
+            <span class="tag">Flutter</span>
+            <span class="tag">Kotlin</span>
+            <span class="tag">React Native</span>
+          </div>
+        </div>
+        <div class="group">
+          <h3>Base de données</h3>
+          <div class="tags">
+            <span class="tag">MySQL</span>
+            <span class="tag">PostgreSQL</span>
+            <span class="tag">SQLite</span>
+            <span class="tag">Supabase</span>
+            <span class="tag">Firebase</span>
+          </div>
+        </div>
+        <div class="group">
+          <h3>DevOps</h3>
+          <div class="tags">
+            <span class="tag">Docker</span>
+            <span class="tag">Nginx</span>
+            <span class="tag">Debian</span>
+            <span class="tag">CI/CD</span>
+            <span class="tag">GitHub Actions</span>
+            <span class="tag">Jenkins</span>
+            <span class="tag">Dockploy</span>
+            <span class="tag">Coolify</span>
+            <span class="tag">GCP</span>
+            <span class="tag">AWS</span>
+          </div>
+        </div>
+        <div class="group">
+          <h3>Pratiques</h3>
+          <div class="tags"><span class="tag">DDD</span><span class="tag">Tests</span><span class="tag">Agile</span>
+            <span class="tag">Anglais C1</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="education" class="card reveal">
+      <h2>Diplômes obtenus</h2>
+      <div class="timeline">
+        <div class="t-item revealed">
+          <div class="t-role">Bachelor Développeur Web — <em>ESD Paris</em></div>
+          <div class="t-meta">2022 - 2024 • Bac +3 / RNCP 6</div>
+        </div>
+        <div class="t-item revealed">
+          <div class="t-role">DUT Informatique — <em>Université Gustave Eiffel</em></div>
+          <div class="t-meta">2020 - 2022 • Bac +2</div>
+        </div>
+        <div class="t-item revealed">
+          <div class="t-role">Baccalauréat STI2D <i>(mention bien) </i> — <em> Lycée René Cassin</em></div>
+          <div class="t-meta">2017 - 2020</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="experience" class="card reveal">
+      <h2>Expériences professionnelles</h2>
+      <div class="timeline">
+        <div class="t-item">
+          <div class="t-role">CDI — Développeur Web Fullstack</div>
+          <div class="t-org">Entreprise : Dollen • Période : Nov. 2024 - En cours</div>
+          <ul class="t-bullets">
+            <li>Conception logiciel (diagrammes de classes <strong>UML</strong>).</li>
+            <li>Back-office: PHP 8.4, Symfony 7.3, Doctrine, Twig, Stimulus, PHPUnit, DDD.</li>
+            <li>CI/CD et déploiement: Docker, Debian, Nginx, GitHub Actions.</li>
+            <li>Migrations: SQLite, PostgreSQL, MariaDB.</li>
+            <li>Peer review et gestion agile (Trello, GitHub Projects).</li>
+          </ul>
+        </div>
+
+        <div class="t-item">
+          <div class="t-role">Apprenti — Développeur Fullstack</div>
+          <div class="t-org">Entreprise : <a href="https://lecadeaupresent.com">Présent </a> • Avr. 2023 - Sep. 2024
+          </div>
+          <ul class="t-bullets">
+            <li>Apps mobiles: Kotlin (interne), Flutter (B2C).</li>
+            <li>API REST monolithique: TypeScript, Fastify, Prisma, Jest, MySQL, Docker, GCP, DDD.</li>
+            <li>SPA desktop/mobile: React, TypeScript, Zustand, Chakra UI.</li>
+          </ul>
+        </div>
+
+        <div class="t-item">
+          <div class="t-role">Apprenti — Développeur R&amp;D</div>
+          <div class="t-org">Entreprise : <a href="https://wattearth.com">WATT Earth</a> • Oct. 2021 - Sept. 2022</div>
+          <ul class="t-bullets">
+            <li>Fonctionnalités cœur produit: VueJS, TS, PHP, Python, MySQL, Warp10, Grafana.</li>
+            <li>Maquettage et conception UI (Figma).</li>
+            <li>Spécifications et cahiers de recettes.</li>
+            <li>Intégration technologies: Modbus, LoRaWAN, Zigbee…</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="projects" class="card reveal">
+      <h2>Projets récents</h2>
+      <div class="proj-grid">
+        <a class="proj" href="https://github.com/Floriansylvain/GoCMS" aria-label="Voir le dépôt GoCMS">
+          <h3>GoCMS</h3>
+          <p>CMS en Go pour accélérer la création de sites avec blog/SSR, architecture <abbr
+              title="Domain Driven Design">DDD</abbr>, CI/CD sur serveur Debian (Docker, Nginx, Jenkins).</p>
+          <div class="stack">
+            <span class="badge">Go</span><span class="badge">SSR</span><span class="badge">Docker</span><span
+              class="badge">Nginx</span><span class="badge">SQLite</span>
+          </div>
+          <p>Voir le dépôt →</p>
+        </a>
+
+        <a class="proj" href="https://github.com/Floriansylvain/SnippetsManager"
+          aria-label="Voir le dépôt SnippetsManager">
+          <h3>SnippetsManager</h3>
+          <p>API inspirée de massCode pour gérer des snippets. TypeScript, Express, Prisma, MySQL, Docker, Jest.</p>
+          <div class="stack">
+            <span class="badge">TypeScript</span><span class="badge">Express</span><span
+              class="badge">Prisma</span><span class="badge">MySQL</span>
+          </div>
+          <p>Voir le dépôt →</p>
+        </a>
+
+        <a class="proj" href="https://github.com/Floriansylvain/spotify-playlist-embed"
+          aria-label="Voir le dépôt spotify-playlist-embed">
+          <h3>spotify-playlist-embed</h3>
+          <p>Lecteur de playlist Spotify en Next.js + TS, avec spotify-web-api-node et TailwindCSS.</p>
+          <div class="stack">
+            <span class="badge">Next.js</span><span class="badge">TypeScript</span><span
+              class="badge">TailwindCSS</span><span class="badge">Spotify API</span>
+          </div>
+          <p>Voir le dépôt →</p>
+        </a>
+      </div>
+    </section>
+
+    <section id="contact" class="card reveal">
+      <h2>Contact</h2>
+      <p>Échangeons sur vos besoins, missions ou opportunités.</p>
+      <p><a href="https://linkedin.com/in/florian-sylvain-0651021a9">LinkedIn</a></p>
+      <p class="lead">Autres moyens de contact non listés pour éviter la collecte automatisée.</p>
+    </section>
+  </main>
+
+  <footer class="container reveal" id="autres">
+    <p>Pourquoi si simple ? Ce site reste léger et sobre. <a
+        href="https://endtimes.dev/why-your-website-should-be-under-14kb-in-size">Pourquoi viser &lt; 14 kB</a></p>
+    <a class="to-top" href="#top" aria-label="Revenir en haut">↑</a>
+    <p>Dernière mise à jour : 2025/08/23</p>
+  </footer>
+  <script src="script.js" defer></script>
 </body>
 
 </html>

@@ -1,0 +1,15 @@
+{
+  "name": "compact-portfolio-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Node server to serve minified, compressed portfolio",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=16"
+  }
+}
+
