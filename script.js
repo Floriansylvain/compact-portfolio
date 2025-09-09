@@ -24,31 +24,6 @@ const sections = navLinks
     .map((a) => document.querySelector(a.getAttribute("href")))
     .filter(Boolean);
 
-let currentSection = null;
-
-const spy = new IntersectionObserver(
-    (entries) => {
-        entries.forEach((e) => {
-            if (e.isIntersecting) {
-                const id = "#" + e.target.id;
-
-                navLinks.forEach((a) => a.removeAttribute("aria-current"));
-                const active = navLinks.find(
-                    (a) => a.getAttribute("href") === id
-                );
-                if (active) active.setAttribute("aria-current", "page");
-
-                if (currentSection !== id) {
-                    currentSection = id;
-                    history.replaceState(null, null, id);
-                }
-            }
-        });
-    },
-    { rootMargin: "-40% 0% -50% 0%", threshold: 0.01 }
-);
-sections.forEach((s) => s && spy.observe(s));
-
 const menuBtn = document.getElementById("menuToggle");
 const nav = document.getElementById("primaryNav");
 if (menuBtn && nav) {
