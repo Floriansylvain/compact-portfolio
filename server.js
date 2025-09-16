@@ -11,6 +11,18 @@ class AssetProcessor {
     constructor() {
         this.files = new Map();
         this.cspHashes = { scripts: new Set(), styles: new Set() };
+        this.reservedWords = this.loadReservedWords();
+    }
+
+    loadReservedWords() {
+        try {
+            const reservedWordsPath = path.join(ROOT, "reserved-words.json");
+            const data = fs.readFileSync(reservedWordsPath, "utf8");
+            return new Set(JSON.parse(data).javascript);
+        } catch (error) {
+            console.warn("Could not load reserved words, using fallback");
+            return new Set(["console", "window", "document"]); // minimal fallback
+        }
     }
 
     hash(content, algorithm = "sha256") {
@@ -165,6 +177,145 @@ class AssetProcessor {
             .trim();
     }
 
+    generateObfuscatedName(index) {
+        const chars =
+            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        let result = "";
+        let num = index;
+
+        result += chars[num % 52];
+        num = Math.floor(num / 52);
+
+        while (num > 0) {
+            result += chars[num % 62];
+            num = Math.floor(num / 62);
+        }
+
+        return result;
+    }
+
+    obfuscateJS(src) {
+        let out = src;
+        const preserveStrings = [];
+        const preserveRegex = [];
+        const preserveTemplates = [];
+        let stringIndex = 0;
+        let regexIndex = 0;
+        let templateIndex = 0;
+
+        out = out.replace(/`((?:\\.|[^`\\])*)`/g, (match) => {
+            const placeholder = `__TEMPLATE_${templateIndex++}__`;
+            preserveTemplates.push({ placeholder, original: match });
+            return placeholder;
+        });
+
+        out = out.replace(/(["'])((?:\\.|(?!\1)[^\\])*?)\1/g, (match) => {
+            const placeholder = `__STRING_${stringIndex++}__`;
+            preserveStrings.push({ placeholder, original: match });
+            return placeholder;
+        });
+
+        out = out.replace(
+            /\/(?![\/\*])([^\/\\\n]|\\.)*\/[gimuy]*/g,
+            (match) => {
+                const placeholder = `__REGEX_${regexIndex++}__`;
+                preserveRegex.push({ placeholder, original: match });
+                return placeholder;
+            }
+        );
+
+        const identifiers = new Set();
+
+        const identifierRegex = /\b[a-zA-Z_$][a-zA-Z0-9_$]*\b/g;
+        let match;
+        while ((match = identifierRegex.exec(out)) !== null) {
+            const identifier = match[0];
+            if (
+                !this.reservedWords.has(identifier) &&
+                !identifier.startsWith("__")
+            ) {
+                identifiers.add(identifier);
+            }
+        }
+
+        const obfuscationMap = new Map();
+        let nameIndex = 0;
+
+        Array.from(identifiers)
+            .sort()
+            .forEach((identifier) => {
+                obfuscationMap.set(
+                    identifier,
+                    this.generateObfuscatedName(nameIndex++)
+                );
+            });
+
+        obfuscationMap.forEach((obfuscated, original) => {
+            const patterns = [
+                new RegExp(
+                    `\\b(const|let|var)\\s+${original.replace(
+                        /[.*+?^${}()|[\]\\]/g,
+                        "\\$&"
+                    )}\\b`,
+                    "g"
+                ),
+                new RegExp(
+                    `\\bfunction\\s+${original.replace(
+                        /[.*+?^${}()|[\]\\]/g,
+                        "\\$&"
+                    )}\\b`,
+                    "g"
+                ),
+                new RegExp(
+                    `\\(([^)]*\\b)${original.replace(
+                        /[.*+?^${}()|[\]\\]/g,
+                        "\\$&"
+                    )}\\b([^)]*)\\)`,
+                    "g"
+                ),
+                new RegExp(
+                    `\\.${original.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
+                    "g"
+                ),
+                new RegExp(
+                    `(?<!for\\s*\\([^)]*\\s)\\b${original.replace(
+                        /[.*+?^${}()|[\]\\]/g,
+                        "\\$&"
+                    )}(?!\\s+of\\b)\\b`,
+                    "g"
+                ),
+            ];
+
+            patterns.forEach((pattern) => {
+                out = out.replace(pattern, (match) => {
+                    return match.replace(
+                        new RegExp(
+                            `\\b${original.replace(
+                                /[.*+?^${}()|[\]\\]/g,
+                                "\\$&"
+                            )}\\b`,
+                            "g"
+                        ),
+                        obfuscated
+                    );
+                });
+            });
+        });
+
+        preserveTemplates.forEach(({ placeholder, original }) => {
+            out = out.replace(placeholder, original);
+        });
+
+        preserveRegex.forEach(({ placeholder, original }) => {
+            out = out.replace(placeholder, original);
+        });
+
+        preserveStrings.forEach(({ placeholder, original }) => {
+            out = out.replace(placeholder, original);
+        });
+
+        return out;
+    }
     minifyJS(src) {
         let out = src;
         const preserveStrings = [];
@@ -187,6 +338,8 @@ class AssetProcessor {
         preserveStrings.forEach(({ placeholder, original }) => {
             out = out.replace(placeholder, original);
         });
+
+        out = this.obfuscateJS(out);
 
         return out;
     }
