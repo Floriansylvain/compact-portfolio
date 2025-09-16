@@ -7,654 +7,380 @@ const crypto = require("crypto");
 const PORT = process.env.PORT || 3000;
 const ROOT = __dirname;
 
-const cspHashes = {
-    scripts: new Set(),
-    styles: new Set(),
-};
-
-function calculateHash(content, algorithm = "sha256") {
-    return crypto
-        .createHash(algorithm)
-        .update(content, "utf8")
-        .digest("base64");
-}
-
-function extractInlineContent(html) {
-    const scriptMatches =
-        html.match(/<script(?![^>]*src=)[^>]*>([\s\S]*?)<\/script>/gi) || [];
-    const styleMatches = html.match(/<style[^>]*>([\s\S]*?)<\/style>/gi) || [];
-
-    cspHashes.scripts.clear();
-    cspHashes.styles.clear();
-
-    scriptMatches.forEach((match) => {
-        const content = match.replace(/<script[^>]*>|<\/script>/gi, "").trim();
-        if (content) {
-            const hash = calculateHash(content);
-            cspHashes.scripts.add(`'sha256-${hash}'`);
-            console.log(`Inline script hash: sha256-${hash}`);
-        }
-    });
-
-    styleMatches.forEach((match) => {
-        const content = match.replace(/<style[^>]*>|<\/style>/gi, "").trim();
-        if (content) {
-            const hash = calculateHash(content);
-            cspHashes.styles.add(`'sha256-${hash}'`);
-            console.log(`Inline style hash: sha256-${hash}`);
-        }
-    });
-}
-
-function generateCSP() {
-    const scriptSources = Array.from(cspHashes.scripts);
-    const styleSources = Array.from(cspHashes.styles);
-
-    let scriptSrc = "'self'";
-    if (scriptSources.length > 0) {
-        scriptSrc += ` ${scriptSources.join(" ")}`;
+class AssetProcessor {
+    constructor() {
+        this.files = new Map();
+        this.cspHashes = { scripts: new Set(), styles: new Set() };
     }
 
-    let styleSrc = "'self'";
-    if (styleSources.length > 0) {
-        styleSrc += ` ${styleSources.join(" ")}`;
-    }
-    if (styleSources.length === 0) {
-        styleSrc += " 'unsafe-inline'";
-    }
-
-    const csp = [
-        "default-src 'self'",
-        `script-src ${scriptSrc}`,
-        `style-src ${styleSrc}`,
-        "img-src 'self' https: data:",
-        "font-src 'self'",
-        "connect-src 'self'",
-        "media-src 'self'",
-        "object-src 'none'",
-        "child-src 'none'",
-        "worker-src 'none'",
-        "frame-ancestors 'none'",
-        "form-action 'self'",
-        "base-uri 'self'",
-        "manifest-src 'self'",
-        "upgrade-insecure-requests",
-    ].join("; ");
-
-    return csp;
-}
-
-function minifyCSS(src) {
-    let out = src
-        .replace(/\/\*[\s\S]*?\*\//g, "")
-        .replace(/\s+/g, " ")
-        .replace(/\s*([{}:;,>+~\(\)\[\]'"*\/])\s*/g, "$1")
-        .replace(/;}/g, "}")
-        .replace(/\b0+(px|em|rem|vh|vw|%|s|ms)\b/g, "0")
-        .replace(/\b0+\.(\d+)/g, ".$1")
-        .replace(/#([0-9a-fA-F])\1([0-9a-fA-F])\2([0-9a-fA-F])\3\b/g, "#$1$2$3")
-        .replace(
-            /rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/g,
-            (m, r, g, b) => {
-                const toHex = (n) => parseInt(n).toString(16).padStart(2, "0");
-                return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
-            }
-        )
-        .replace(/calc\(\s*([^)]+)\s*\)/g, (m, expr) => {
-            return `calc(${expr.replace(/\s+/g, "")})`;
-        })
-        .replace(/(['"])([a-zA-Z0-9\-_]+)\1/g, (m, q, val) => {
-            if (/^[a-zA-Z\-_][a-zA-Z0-9\-_]*$/.test(val)) return val;
-            return m;
-        })
-        .replace(
-            /([^{}]+)\{([^}]*)\}([^{}]+)\{([^}]*)\}/g,
-            (m, sel1, rules1, sel2, rules2) => {
-                if (rules1 === rules2) return `${sel1},${sel2}{${rules1}}`;
-                return m;
-            }
-        )
-        .replace(/[^{}]+\{\s*\}/g, "")
-        .replace(/(margin|padding):([^;]+)/g, (m, prop, vals) => {
-            const parts = vals.trim().split(/\s+/);
-            if (parts.length === 4) {
-                const [t, r, b, l] = parts;
-                if (t === r && r === b && b === l) return `${prop}:${t}`;
-                if (t === b && r === l) return `${prop}:${t} ${r}`;
-            } else if (parts.length === 2) {
-                const [tb, lr] = parts;
-                if (tb === lr) return `${prop}:${tb}`;
-            }
-            return m;
-        })
-        .replace(/border-radius:([^;]+)/g, (m, vals) => {
-            const parts = vals.trim().split(/\s+/);
-            if (parts.length === 4 && parts.every((p) => p === parts[0])) {
-                return `border-radius:${parts[0]}`;
-            }
-            return m;
-        })
-        .replace(
-            /-webkit-(transform|transition|animation|box-shadow|border-radius):/g,
-            "$1:"
-        )
-        .replace(
-            /-moz-(transform|transition|animation|box-shadow|border-radius):/g,
-            "$1:"
-        )
-        .replace(/-ms-(transform|transition|animation):/g, "$1:")
-        .replace(
-            /translate\(\s*([^,]+)\s*,\s*([^)]+)\s*\)/g,
-            "translate($1,$2)"
-        )
-        .replace(/scale\(\s*([^,]+)\s*,\s*([^)]+)\s*\)/g, (m, x, y) => {
-            return x === y ? `scale(${x})` : `scale(${x},${y})`;
-        })
-        .replace(/@media\s+([^{]+)\s*\{/g, "@media $1{")
-        .replace(/linear-gradient\(\s*([^)]+)\s*\)/g, (m, args) => {
-            return `linear-gradient(${args.replace(/\s*,\s*/g, ",")})`;
-        })
-        .replace(/radial-gradient\(\s*([^)]+)\s*\)/g, (m, args) => {
-            return `radial-gradient(${args.replace(/\s*,\s*/g, ",")})`;
-        })
-        .replace(/,\s+/g, ",")
-        .replace(/:\s+/g, ":")
-        .replace(/;\s+/g, ";")
-        .replace(/\{\s+/g, "{")
-        .replace(/\s+\}/g, "}")
-        .replace(/>\s+/g, ">")
-        .replace(/\+\s+/g, "+")
-        .replace(/~\s+/g, "~");
-
-    return out.replace(/\r?\n/g, "").trim();
-}
-
-function minifyHTML(src) {
-    let out = src
-        .replace(/<!--(?!\[if)[\s\S]*?-->/g, "")
-        .replace(/>\s+</g, "><")
-        .replace(/>\s+([^<]+?)\s+</g, ">$1<")
-        .replace(/<style[^>]*>([\s\S]*?)<\/style>/gi, (m, css) => {
-            return m.replace(css, minifyCSS(css));
-        })
-        .replace(
-            /<link([^>]*)\s+onload=["']([^"']+)["']([^>]*)>/gi,
-            (match, before, onloadCode, after) => {
-                return `<link${before} data-onload="${onloadCode.replace(
-                    /"/g,
-                    "&quot;"
-                )}"${after}>`;
-            }
-        )
-        .replace(/\s+([\w-]+)=["']([^"'\s<>]+)["']/g, (m, attr, val) => {
-            if (/^[a-zA-Z0-9._:/-]+$/.test(val)) return ` ${attr}=${val}`;
-            return m;
-        })
-        .replace(/\s*=\s*/g, "=")
-        .replace(/\s+>/g, ">")
-        .replace(/\s{2,}/g, " ")
-        .replace(/<([^>]+)\s+>/g, "<$1>")
-        .replace(/\s+[\w-]+=["']["']/g, "")
-        .replace(/\s+type=["']text\/(javascript|css)["']/g, "");
-
-    return out.replace(/\r?\n/g, "").trim();
-}
-
-function minifyJS(src) {
-    let out = "";
-    let i = 0,
-        n = src.length;
-    let inStr = false,
-        strQuote = "",
-        inTemplate = false,
-        escape = false;
-
-    while (i < n) {
-        const ch = src[i];
-        const next = src[i + 1];
-
-        if (inStr) {
-            out += ch;
-            if (!escape && ch === strQuote) {
-                inStr = false;
-                strQuote = "";
-            }
-            escape = !escape && ch === "\\";
-            i++;
-            continue;
-        }
-
-        if (inTemplate) {
-            out += ch;
-            if (!escape && ch === "`") {
-                inTemplate = false;
-            }
-            escape = !escape && ch === "\\";
-            i++;
-            continue;
-        }
-
-        if (ch === '"' || ch === "'") {
-            inStr = true;
-            strQuote = ch;
-            out += ch;
-            i++;
-            continue;
-        }
-
-        if (ch === "`") {
-            inTemplate = true;
-            out += ch;
-            i++;
-            continue;
-        }
-        if (ch === "/" && next === "*") {
-            i += 2;
-            while (i < n && !(src[i] === "*" && src[i + 1] === "/")) i++;
-            i += 2;
-            continue;
-        }
-        if (ch === "/" && next === "/") {
-            i += 2;
-            while (i < n && src[i] !== "\n") i++;
-            continue;
-        }
-
-        out += ch;
-        i++;
+    hash(content, algorithm = "sha256") {
+        return crypto
+            .createHash(algorithm)
+            .update(content, "utf8")
+            .digest("base64");
     }
 
-    let finalOut = "";
-    inStr = false;
-    strQuote = "";
-    inTemplate = false;
-    escape = false;
-
-    for (let j = 0; j < out.length; j++) {
-        const ch = out[j];
-        const prev = finalOut[finalOut.length - 1];
-
-        if (inStr) {
-            finalOut += ch;
-            if (!escape && ch === strQuote) {
-                inStr = false;
-                strQuote = "";
-            }
-            escape = !escape && ch === "\\";
-            continue;
+    etag(buf) {
+        let h = 2166136261 >>> 0;
+        for (let i = 0; i < buf.length; i++) {
+            h ^= buf[i];
+            h = Math.imul(h, 16777619);
         }
-
-        if (inTemplate) {
-            finalOut += ch;
-            if (!escape && ch === "`") {
-                inTemplate = false;
-            }
-            escape = !escape && ch === "\\";
-            continue;
-        }
-
-        if (ch === '"' || ch === "'") {
-            inStr = true;
-            strQuote = ch;
-            finalOut += ch;
-            continue;
-        }
-
-        if (ch === "`") {
-            inTemplate = true;
-            finalOut += ch;
-            continue;
-        }
-
-        if (/\s/.test(ch)) {
-            let k = j + 1;
-            while (k < out.length && /\s/.test(out[k])) k++;
-            const nxt = out[k];
-
-            if (
-                (/[a-zA-Z0-9_$]/.test(prev) && /[a-zA-Z0-9_$]/.test(nxt)) ||
-                (prev === "return" && /[a-zA-Z0-9_$"]/.test(nxt))
-            ) {
-                finalOut += " ";
-            }
-            j = k - 1;
-            continue;
-        }
-
-        if (/[=;:,{}()<>+\-*\/\?|&!]/.test(ch) && finalOut.endsWith(" ")) {
-            finalOut = finalOut.slice(0, -1);
-        }
-
-        finalOut += ch;
+        return `W/"${(h >>> 0).toString(16)}-${buf.length}"`;
     }
 
-    return finalOut
-        .replace(/\r?\n/g, "")
-        .replace(/;}/g, "}")
-        .replace(/===true/g, "")
-        .replace(/!==false/g, "")
-        .replace(/==true/g, "")
-        .replace(/!=false/g, "")
-        .replace(/\["([a-zA-Z_$][a-zA-Z0-9_$]*)"\]/g, ".$1")
-        .trim();
-}
-
-const files = new Map();
-
-function contentTypeFor(fp) {
-    const ext = path.extname(fp).toLowerCase();
-    switch (ext) {
-        case ".html":
-            return "text/html; charset=utf-8";
-        case ".css":
-            return "text/css; charset=utf-8";
-        case ".js":
-            return "application/javascript; charset=utf-8";
-        case ".webp":
-            return "image/webp";
-        case ".xml":
-            return "application/xml; charset=utf-8";
-        case ".txt":
-            return "text/plain; charset=utf-8";
-        default:
-            return "application/octet-stream";
-    }
-}
-
-function cacheControlFor(fp) {
-    const ext = path.extname(fp).toLowerCase();
-    if (ext === ".html") return "no-cache";
-    if (ext === ".css" || ext === ".js")
-        return "public, max-age=31536000, immutable";
-    if (ext === ".webp") return "public, max-age=31536000, immutable";
-    if (ext === ".xml" || ext === ".txt") return "public, max-age=3600";
-    return "public, max-age=3600";
-}
-
-function etag(buf) {
-    let h = 2166136261 >>> 0;
-    for (let i = 0; i < buf.length; i++) {
-        h ^= buf[i];
-        h = Math.imul(h, 16777619);
-    }
-    return 'W/"' + (h >>> 0).toString(16) + "-" + buf.length + '"';
-}
-
-function preCompress(buf) {
-    return new Promise((resolve) => {
+    async compress(buf) {
         const result = { raw: buf };
 
         try {
-            zlib.brotliCompress(
-                buf,
-                {
-                    params: {
-                        [zlib.constants.BROTLI_PARAM_QUALITY]: 11,
-                        [zlib.constants.BROTLI_PARAM_SIZE_HINT]: buf.length,
-                    },
-                },
-                (err, br) => {
-                    if (!err && br) result.br = br;
-
-                    zlib.gzip(
+            const [br, gz] = await Promise.all([
+                new Promise((resolve) => {
+                    zlib.brotliCompress(
                         buf,
                         {
-                            level: 9,
-                            windowBits: 15,
-                            memLevel: 9,
+                            params: {
+                                [zlib.constants.BROTLI_PARAM_QUALITY]: 6,
+                                [zlib.constants.BROTLI_PARAM_SIZE_HINT]:
+                                    buf.length,
+                            },
                         },
-                        (gzErr, gz) => {
-                            if (!gzErr && gz) result.gz = gz;
-                            resolve(result);
-                        }
+                        (err, compressed) => resolve(err ? null : compressed)
                     );
+                }),
+                new Promise((resolve) => {
+                    zlib.gzip(buf, { level: 9 }, (err, compressed) =>
+                        resolve(err ? null : compressed)
+                    );
+                }),
+            ]);
+
+            if (br) result.br = br;
+            if (gz) result.gz = gz;
+        } catch {}
+
+        return result;
+    }
+
+    extractCSPHashes(html) {
+        this.cspHashes.scripts.clear();
+        this.cspHashes.styles.clear();
+
+        (
+            html.match(/<script(?![^>]*src=)[^>]*>([\s\S]*?)<\/script>/gi) || []
+        ).forEach((match) => {
+            const content = match.replace(/<\/?script[^>]*>/gi, "").trim();
+            if (content) this.cspHashes.scripts.add(this.hash(content));
+        });
+
+        (html.match(/<style[^>]*>([\s\S]*?)<\/style>/gi) || []).forEach(
+            (match) => {
+                const content = match.replace(/<\/?style[^>]*>/gi, "").trim();
+                if (content) this.cspHashes.styles.add(this.hash(content));
+            }
+        );
+    }
+
+    generateCSP() {
+        const scriptHashes = Array.from(this.cspHashes.scripts).map(
+            (h) => `'sha256-${h}'`
+        );
+        const styleHashes = Array.from(this.cspHashes.styles).map(
+            (h) => `'sha256-${h}'`
+        );
+
+        const scriptSrc = `'self'${
+            scriptHashes.length ? " " + scriptHashes.join(" ") : ""
+        }`;
+        const styleSrc = `'self'${
+            styleHashes.length
+                ? " " + styleHashes.join(" ")
+                : " 'unsafe-inline'"
+        }`;
+
+        return [
+            "default-src 'self'",
+            `script-src ${scriptSrc}`,
+            `script-src-elem ${scriptSrc}`,
+            `style-src ${styleSrc}`,
+            `style-src-elem ${styleSrc}`,
+            "img-src 'self' https: data:",
+            "font-src 'self'",
+            "connect-src 'self'",
+            "media-src 'self' data:",
+            "object-src 'none'",
+            "child-src 'none'",
+            "worker-src 'none'",
+            "frame-ancestors 'none'",
+            "form-action 'self'",
+            "base-uri 'self'",
+            "manifest-src 'self'",
+            "upgrade-insecure-requests",
+        ].join("; ");
+    }
+
+    minifyCSS(src) {
+        return src
+            .replace(/\/\*[\s\S]*?\*\//g, "")
+            .replace(/\s+/g, " ")
+            .replace(/\s*([{}:;,>+~\(\)\[\]'"*\/])\s*/g, "$1")
+            .replace(/;}/g, "}")
+            .replace(/\b0+(px|em|rem|vh|vw|%|s|ms)\b/g, "0")
+            .replace(
+                /#([0-9a-fA-F])\1([0-9a-fA-F])\2([0-9a-fA-F])\3\b/g,
+                "#$1$2$3"
+            )
+            .replace(
+                /rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/g,
+                (m, r, g, b) => {
+                    const hex = (n) =>
+                        parseInt(n).toString(16).padStart(2, "0");
+                    return `#${hex(r)}${hex(g)}${hex(b)}`;
                 }
-            );
-        } catch {
-            zlib.gzip(buf, { level: 9 }, (gzErr, gz) => {
-                if (!gzErr && gz) result.gz = gz;
-                resolve(result);
-            });
-        }
-    });
-}
+            )
+            .replace(/,\s+/g, ",")
+            .replace(/:\s+/g, ":")
+            .replace(/;\s+/g, ";")
+            .replace(/\{\s+/g, "{")
+            .replace(/\s+\}/g, "}")
+            .replace(/\r?\n/g, "")
+            .trim();
+    }
 
-function generateSRIHash(content) {
-    return crypto.createHash("sha384").update(content, "utf8").digest("base64");
-}
+    minifyHTML(src) {
+        return src
+            .replace(/<!--(?!\[if)[\s\S]*?-->/g, "")
+            .replace(/>\s+</g, "><")
+            .replace(/>\s+([^<]+?)\s+</g, ">$1<")
+            .replace(/<style[^>]*>([\s\S]*?)<\/style>/gi, (m, css) =>
+                m.replace(css, this.minifyCSS(css))
+            )
+            .replace(/\s+([\w-]+)=["']([^"'\s<>]+)["']/g, (m, attr, val) =>
+                /^[a-zA-Z0-9._:/-]+$/.test(val) ? ` ${attr}=${val}` : m
+            )
+            .replace(/\s*=\s*/g, "=")
+            .replace(/\s+>/g, ">")
+            .replace(/\s{2,}/g, " ")
+            .replace(/\s+type=["']text\/(javascript|css)["']/g, "")
+            .replace(/\r?\n/g, "")
+            .trim();
+    }
 
-async function loadAndMinify(relPath, minify) {
-    const abs = path.join(ROOT, relPath);
-    const src = await fs.promises.readFile(abs);
+    minifyJS(src) {
+        let out = src;
+        const preserveStrings = [];
+        let stringIndex = 0;
 
-    const ext = path.extname(relPath).toLowerCase();
-    const isBinaryFile = [
-        ".webp",
-        ".png",
-        ".jpg",
-        ".jpeg",
-        ".gif",
-        ".ico",
-    ].includes(ext);
+        out = out.replace(/(["'`])((?:\\.|(?!\1)[^\\])*?)\1/g, (match) => {
+            const placeholder = `__STRING_${stringIndex++}__`;
+            preserveStrings.push({ placeholder, original: match });
+            return placeholder;
+        });
 
-    let body;
-    let processedContent;
+        out = out.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
 
-    if (isBinaryFile) {
-        body = src;
-        processedContent = null;
-    } else {
-        const originalContent = src.toString("utf8");
-        processedContent = originalContent;
+        out = out
+            .replace(/\s+/g, " ")
+            .replace(/\s*([=;:,{}()<>+\-*\/\?|&!])\s*/g, "$1")
+            .replace(/;}/g, "}")
+            .trim();
+
+        preserveStrings.forEach(({ placeholder, original }) => {
+            out = out.replace(placeholder, original);
+        });
+
+        return out;
+    }
+
+    getContentType(filePath) {
+        const ext = path.extname(filePath).toLowerCase();
+        const types = {
+            ".html": "text/html; charset=utf-8",
+            ".css": "text/css; charset=utf-8",
+            ".js": "application/javascript; charset=utf-8",
+            ".webp": "image/webp",
+            ".xml": "application/xml; charset=utf-8",
+            ".txt": "text/plain; charset=utf-8",
+        };
+        return types[ext] || "application/octet-stream";
+    }
+
+    getCacheControl(filePath) {
+        const ext = path.extname(filePath).toLowerCase();
+        if (ext === ".html") return "no-cache";
+        if ([".css", ".js", ".webp"].includes(ext))
+            return "public, max-age=31536000, immutable";
+        return "public, max-age=3600";
+    }
+
+    async processFile(relPath, minifier = null) {
+        const absPath = path.join(ROOT, relPath);
+        const content = await fs.promises.readFile(absPath);
+        const stats = await fs.promises.stat(absPath);
+
+        let processedContent = content;
 
         if (relPath === "index.html") {
+            let htmlContent = content.toString("utf8");
+
             const cssPath = path.join(ROOT, "style.css");
             if (fs.existsSync(cssPath)) {
                 const cssContent = await fs.promises.readFile(cssPath, "utf8");
-                const minifiedCSS = minifyCSS(cssContent);
-
-                processedContent = processedContent.replace(
+                htmlContent = htmlContent.replace(
                     /<link[^>]*href=["']style\.css["'][^>]*>/gi,
-                    `<style>${minifiedCSS}</style>`
+                    `<style>${this.minifyCSS(cssContent)}</style>`
                 );
             }
 
             const jsPath = path.join(ROOT, "script.js");
             if (fs.existsSync(jsPath)) {
                 const jsContent = await fs.promises.readFile(jsPath, "utf8");
-                const minifiedJS = minifyJS(jsContent);
-
-                processedContent = processedContent.replace(
+                htmlContent = htmlContent.replace(
                     /<script[^>]*src=["']script\.js["'][^>]*><\/script>/gi,
-                    `<script>${minifiedJS}</script>`
+                    `<script>${this.minifyJS(jsContent)}</script>`
                 );
             }
 
-            extractInlineContent(processedContent);
+            if (minifier) htmlContent = minifier(htmlContent);
+            this.extractCSPHashes(htmlContent);
+            processedContent = Buffer.from(htmlContent, "utf8");
+        } else if (minifier) {
+            processedContent = Buffer.from(
+                minifier(content.toString("utf8")),
+                "utf8"
+            );
         }
 
-        body = minify
-            ? Buffer.from(minify(processedContent), "utf8")
-            : Buffer.from(processedContent, "utf8");
-    }
+        const compressed = await this.compress(processedContent);
 
-    let sriHash = null;
-    if (relPath === "style.css" || relPath === "script.js") {
-        sriHash = generateSRIHash(body.toString("utf8"));
-        console.log(`SRI hash for ${relPath}: sha384-${sriHash}`);
-    }
-
-    const compressed = await preCompress(body);
-    const stats = await fs.promises.stat(abs);
-
-    const originalSize = src.length;
-    const processedSize = body.length;
-    const brSize = compressed.br?.length || 0;
-    const gzSize = compressed.gz?.length || 0;
-
-    console.log(`${relPath}:`);
-    console.log(`  Original: ${originalSize} bytes`);
-    if (!isBinaryFile && minify)
-        console.log(
-            `  Minified: ${processedSize} bytes (${(
-                ((originalSize - processedSize) / originalSize) *
-                100
-            ).toFixed(1)}% reduction)`
-        );
-    if (brSize)
-        console.log(
-            `  Brotli: ${brSize} bytes (${(
-                (brSize / originalSize) *
-                100
-            ).toFixed(1)}% of original)`
-        );
-    if (gzSize)
-        console.log(
-            `  Gzip: ${gzSize} bytes (${((gzSize / originalSize) * 100).toFixed(
-                1
-            )}% of original)`
-        );
-    console.log("");
-
-    const entry = {
-        path: relPath,
-        mtimeMs: stats.mtimeMs,
-        type: contentTypeFor(relPath),
-        cache: cacheControlFor(relPath),
-        body,
-        etag: etag(body),
-        br: compressed.br,
-        brEtag: compressed.br ? etag(compressed.br) : undefined,
-        gz: compressed.gz,
-        gzEtag: compressed.gz ? etag(compressed.gz) : undefined,
-        sri: sriHash,
-    };
-
-    files.set("/" + relPath.replace(/\\/g, "/"), entry);
-}
-
-async function build() {
-    console.log("Building and compressing files...\n");
-
-    await loadAndMinify("index.html", minifyHTML);
-    await loadAndMinify("style.css", minifyCSS);
-    await loadAndMinify("script.js", minifyJS);
-
-    for (const f of [
-        "favicon.webp",
-        "profile.webp",
-        "robots.txt",
-        "sitemap.xml",
-    ]) {
-        if (fs.existsSync(path.join(ROOT, f))) {
-            await loadAndMinify(f, null);
-        }
-    }
-    const cspPolicy = generateCSP();
-    files.set("__csp__", cspPolicy);
-
-    console.log("CSS and JavaScript have been inlined into HTML automatically");
-    console.log(
-        "CSP policy generated with secure hashes for all inline content"
-    );
-}
-
-function setSecurityHeaders(res) {
-    const cspPolicy = files.get("__csp__");
-
-    res.setHeader("X-Content-Type-Options", "nosniff");
-    res.setHeader("X-Frame-Options", "DENY");
-    res.setHeader("X-XSS-Protection", "1; mode=block");
-    res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
-    res.setHeader(
-        "Strict-Transport-Security",
-        "max-age=31536000; includeSubDomains; preload"
-    );
-    res.setHeader(
-        "Permissions-Policy",
-        "geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), speaker=()"
-    );
-
-    if (cspPolicy) {
-        res.setHeader("Content-Security-Policy", cspPolicy);
-    }
-}
-
-function negotiateEncoding(req) {
-    const ae = req.headers["accept-encoding"] || "";
-    const hasBr = /\bbr\b/.test(ae);
-    const hasGz = /\bgzip\b/.test(ae);
-    return { br: hasBr, gz: hasGz };
-}
-
-function serveEntry(req, res, entry) {
-    setSecurityHeaders(res);
-    res.setHeader("Content-Type", entry.type);
-    res.setHeader("Cache-Control", entry.cache);
-    res.setHeader("Vary", "Accept-Encoding");
-
-    const enc = negotiateEncoding(req);
-    let body = entry.body;
-    let tag = entry.etag;
-
-    if (enc.br && entry.br) {
-        body = entry.br;
-        tag = entry.brEtag;
-        res.setHeader("Content-Encoding", "br");
-    } else if (enc.gz && entry.gz) {
-        body = entry.gz;
-        tag = entry.gzEtag;
-        res.setHeader("Content-Encoding", "gzip");
-    }
-
-    res.setHeader("ETag", tag);
-    if (req.headers["if-none-match"] === tag) {
-        res.statusCode = 304;
-        return res.end();
-    }
-
-    res.statusCode = 200;
-    res.end(body);
-}
-
-function notFound(req, res) {
-    setSecurityHeaders(res);
-    res.statusCode = 404;
-    res.setHeader("Content-Type", "text/plain; charset=utf-8");
-    res.end("404 Not Found");
-}
-
-function handler(req, res) {
-    const url = new URL(req.url, `http://${req.headers.host}`);
-    let pathname = url.pathname;
-    if (pathname === "/") pathname = "/index.html";
-    const entry = files.get(pathname);
-    if (entry) return serveEntry(req, res, entry);
-
-    const fallback = path.join(ROOT, pathname);
-    if (fs.existsSync(fallback) && fs.statSync(fallback).isFile()) {
-        const raw = fs.readFileSync(fallback);
-        const tmpEntry = {
-            type: contentTypeFor(fallback),
-            cache: cacheControlFor(fallback),
-            body: raw,
-            etag: etag(raw),
+        return {
+            path: "/" + relPath.replace(/\\/g, "/"),
+            mtimeMs: stats.mtimeMs,
+            type: this.getContentType(relPath),
+            cache: this.getCacheControl(relPath),
+            body: processedContent,
+            etag: this.etag(processedContent),
+            br: compressed.br,
+            brEtag: compressed.br ? this.etag(compressed.br) : undefined,
+            gz: compressed.gz,
+            gzEtag: compressed.gz ? this.etag(compressed.gz) : undefined,
         };
-        return serveEntry(req, res, tmpEntry);
     }
 
-    return notFound(req, res);
+    async build() {
+        console.log("Building assets...");
+
+        const tasks = [
+            { file: "index.html", minifier: this.minifyHTML.bind(this) },
+            { file: "style.css", minifier: this.minifyCSS.bind(this) },
+            { file: "script.js", minifier: this.minifyJS.bind(this) },
+            { file: "favicon.webp" },
+            { file: "profile.webp" },
+            { file: "robots.txt" },
+            { file: "sitemap.xml" },
+        ];
+
+        await Promise.allSettled(
+            tasks.map(async ({ file, minifier }) => {
+                if (fs.existsSync(path.join(ROOT, file))) {
+                    const entry = await this.processFile(file, minifier);
+                    this.files.set(entry.path, entry);
+                    return `${file}: processed`;
+                }
+                return `${file}: skipped`;
+            })
+        );
+
+        this.files.set("__csp__", this.generateCSP());
+        console.log("Build complete");
+    }
+
+    setSecurityHeaders(res) {
+        const headers = {
+            "X-Content-Type-Options": "nosniff",
+            "X-Frame-Options": "DENY",
+            "X-XSS-Protection": "1; mode=block",
+            "Referrer-Policy": "strict-origin-when-cross-origin",
+            "Strict-Transport-Security":
+                "max-age=31536000; includeSubDomains; preload",
+            "Permissions-Policy":
+                "geolocation=(), microphone=(), camera=(), payment=(), usb=(), magnetometer=(), gyroscope=(), speaker=()",
+            "Content-Security-Policy": this.files.get("__csp__"),
+        };
+
+        Object.entries(headers).forEach(([key, value]) => {
+            if (value) res.setHeader(key, value);
+        });
+    }
+
+    serveFile(req, res, entry) {
+        this.setSecurityHeaders(res);
+        res.setHeader("Content-Type", entry.type);
+        res.setHeader("Cache-Control", entry.cache);
+        res.setHeader("Vary", "Accept-Encoding");
+
+        const acceptEncoding = req.headers["accept-encoding"] || "";
+        let { body, etag: tag } = entry;
+
+        if (/\bbr\b/.test(acceptEncoding) && entry.br) {
+            body = entry.br;
+            tag = entry.brEtag;
+            res.setHeader("Content-Encoding", "br");
+        } else if (/\bgzip\b/.test(acceptEncoding) && entry.gz) {
+            body = entry.gz;
+            tag = entry.gzEtag;
+            res.setHeader("Content-Encoding", "gzip");
+        }
+
+        res.setHeader("ETag", tag);
+
+        if (req.headers["if-none-match"] === tag) {
+            res.statusCode = 304;
+            return res.end();
+        }
+
+        res.statusCode = 200;
+        res.end(body);
+    }
+
+    handleRequest(req, res) {
+        const url = new URL(req.url, `http://${req.headers.host}`);
+        let pathname = url.pathname === "/" ? "/index.html" : url.pathname;
+
+        const entry = this.files.get(pathname);
+        if (entry) return this.serveFile(req, res, entry);
+
+        const fallbackPath = path.join(ROOT, pathname);
+        if (fs.existsSync(fallbackPath) && fs.statSync(fallbackPath).isFile()) {
+            const content = fs.readFileSync(fallbackPath);
+            const tempEntry = {
+                type: this.getContentType(fallbackPath),
+                cache: this.getCacheControl(fallbackPath),
+                body: content,
+                etag: this.etag(content),
+            };
+            return this.serveFile(req, res, tempEntry);
+        }
+
+        this.setSecurityHeaders(res);
+        res.statusCode = 404;
+        res.setHeader("Content-Type", "text/plain; charset=utf-8");
+        res.end("404 Not Found");
+    }
 }
 
 async function start() {
-    await build();
-    const server = http.createServer(handler);
+    const processor = new AssetProcessor();
+    await processor.build();
+
+    const server = http.createServer((req, res) =>
+        processor.handleRequest(req, res)
+    );
     server.listen(PORT, () => {
         console.log(`Server running on http://localhost:${PORT}`);
     });
 }
 
 start().catch((err) => {
-    console.error("Failed to start server:", err);
+    console.error("Server failed:", err);
     process.exit(1);
 });
