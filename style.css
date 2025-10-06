@@ -24,13 +24,7 @@ html {
 body {
     margin: 0;
     color: var(--foreground);
-    background: radial-gradient(
-            80rem 50rem at 110% -10%,
-            #1a321a10 20%,
-            transparent 60%
-        ),
-        radial-gradient(60rem 40rem at -10% 10%, #2a4a2a14 20%, transparent 60%),
-        var(--background);
+    background: var(--background);
     font-family: var(--font-body);
     line-height: 1.65;
     text-rendering: optimizeLegibility;
@@ -51,7 +45,7 @@ body {
     z-index: 20;
     backdrop-filter: saturate(1.2) blur(6px);
     border-bottom: 1px solid #1b281b;
-    background: linear-gradient(180deg, #0f150fdd, #0f150fb0 60%, #0f150f80);
+    background: #0f150f;
     height: 70px;
     display: flex;
     align-items: center;
@@ -83,13 +77,7 @@ body {
     font-weight: 700;
     font-family: var(--font-heading);
     color: #0e120e;
-    background: conic-gradient(
-        from 120deg,
-        var(--accent),
-        var(--accent-2),
-        var(--accent) 75%
-    );
-    box-shadow: 0 1px 0 #0008, 0 6px 24px #0006;
+    background: var(--accent);
     border: 1px solid #2a392a;
 }
 
@@ -119,7 +107,7 @@ body {
     right: 8px;
     bottom: 6px;
     height: 2px;
-    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    background: var(--accent);
     opacity: 0;
     transform: scaleX(0.5);
     transition: opacity 0.25s, transform 0.25s;
@@ -230,7 +218,7 @@ section {
 }
 
 .card {
-    background: color-mix(in srgb, var(--surface) 96%, black 4%);
+    background: var(--surface);
     border: 1px solid var(--border);
     border-radius: 16px;
     padding: 18px;
@@ -256,7 +244,7 @@ p.lead {
 }
 
 .group {
-    background: linear-gradient(180deg, #111a11, #0d130d);
+    background: var(--surface-2);
     border: 1px solid #223222;
     border-radius: 14px;
     padding: 12px;
@@ -315,7 +303,6 @@ p.lead {
     height: 10px;
     border-radius: 50%;
     background: var(--accent);
-    box-shadow: 0 0 0 3px #0f150f;
 }
 
 .t-role {
@@ -340,14 +327,13 @@ p.lead {
 .proj {
     border: 1px solid var(--border);
     border-radius: 14px;
-    background: linear-gradient(180deg, #131b13, #0f150f);
+    background: var(--surface-2);
     padding: 14px;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.2s ease;
 }
 
 .proj:hover {
     transform: translateY(-3px);
-    box-shadow: 0 14px 40px #0006;
 }
 
 .stack {
@@ -385,7 +371,7 @@ a:visited {
 
 /* Urgent banner */
 .banner {
-    background: linear-gradient(180deg, #1a231a, #121812);
+    background: var(--surface-2);
     border: 1px solid var(--border);
     border-radius: 14px;
     padding: 12px 16px;
@@ -497,7 +483,6 @@ footer .to-top {
         padding: 8px;
         gap: 0;
         display: none;
-        box-shadow: 0 10px 30px #0006;
         z-index: 25;
     }
 
