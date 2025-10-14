@@ -161,7 +161,14 @@ class AssetProcessor {
     minifyHTML(src) {
         return src
             .replace(/<!--(?!\[if)[\s\S]*?-->/g, "")
-            .replace(/>\s+</g, "><")
+            .replace(/>\s+</g, (match, offset, string) => {
+                const before = string.substring(0, offset + 1);
+                const after = string.substring(offset + match.length - 1);
+                if (/span[^>]*>\s*$/.test(before) && /^\s*<span/.test(after)) {
+                    return "> <";
+                }
+                return "><";
+            })
             .replace(/>\s+([^<]+?)\s+</g, ">$1<")
             .replace(/<style[^>]*>([\s\S]*?)<\/style>/gi, (m, css) =>
                 m.replace(css, this.minifyCSS(css))
