@@ -473,33 +473,6 @@ a:visited:hover {
     color: var(--accent-2);
 }
 
-/* Urgent banner */
-.banner {
-    opacity: 0;
-    transform: translateY(-100%);
-    animation: slideInFromTop 0.6s ease forwards;
-    animation-delay: 1.5s;
-    position: fixed;
-    left: 0;
-    right: 0;
-    z-index: 15;
-    pointer-events: none;
-    margin-top: 82px;
-}
-
-.banner .container {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 12px 16px;
-    backdrop-filter: saturate(1.2) blur(6px);
-    pointer-events: all;
-    max-width: 1084px;
-}
-
 @keyframes slideInFromTop {
     from {
         opacity: 0;
@@ -509,21 +482,6 @@ a:visited:hover {
         opacity: 1;
         transform: translateY(0);
     }
-}
-
-.badge-urgent {
-    background: #ff5858;
-    color: #0e120e;
-    border: 1px solid #ff9a9a;
-    border-radius: 999px;
-    padding: 4px 10px;
-    font-weight: 700;
-    font-family: var(--font-heading);
-    letter-spacing: 0.02em;
-}
-
-.banner .btn {
-    margin-left: auto;
 }
 
 /* Buttons */
@@ -618,10 +576,6 @@ footer .to-top {
     .hero-fullscreen {
         min-height: calc(100vh - 70px);
         padding: 24px 16px;
-    }
-
-    .banner {
-        display: none;
     }
 
     section {
